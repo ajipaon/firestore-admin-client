@@ -184,3 +184,19 @@ Authorization: Bearer <firebase-id-token>
 - The server can implement additional authorization logic beyond what Firebase provides
 - Mobile clients never need direct access to Firestore
 - You can add additional middleware for rate limiting, logging, etc.
+
+## Web Interface Screenshots
+
+Below are screenshots of the web interface for this project:
+
+### User management
+![Login Page](Screenshot-1.png)
+
+### Firestore collection list
+![Admin Dashboard](Screenshot-2.png)
+
+### Firestore Data list
+![Firestore Data Management](Screenshot-3.png)
+
+### Firestore Data example view
+![User Management](Screenshot-4.png)
