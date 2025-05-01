@@ -1,6 +1,5 @@
-# Firebase Firestore Forwarder Server
+# Firebase Firestore Admin Client
 
-This is a Golang backend server that acts as a forwarder between mobile applications and Firebase Firestore. It provides a secure and controlled interface for mobile clients to interact with Firestore data.
 
 ## Features
 
