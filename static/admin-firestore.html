@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Collections</title>
+    <!-- HTMX for handling requests without full page reloads -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid #34495e;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .sidebar-menu li {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .sidebar-menu li:hover {
+            background-color: #34495e;
+        }
+        .sidebar-menu li.active {
+            background-color: #3498db;
+        }
+        .sidebar-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #4285F4;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-right: 10px;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3367d6;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+        .breadcrumb-item {
+            display: inline-flex;
+            align-items: center;
+        }
+        .breadcrumb-item:not(:last-child)::after {
+            content: ">";
+            margin: 0 10px;
+            color: #666;
+        }
+        .breadcrumb-item a {
+            color: #4285F4;
+            text-decoration: none;
+        }
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb-item.active {
+            color: #333;
+            font-weight: bold;
+        }
+        .collection-list {
+            list-style: none;
+            padding: 0;
+        }
+        .collection-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .collection-item:hover {
+            background-color: #f5f5f5;
+        }
+        .collection-icon {
+            margin-right: 15px;
+            color: #4285F4;
+            font-size: 24px;
+        }
+        .collection-info {
+            flex: 1;
+        }
+        .collection-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .collection-path {
+            color: #666;
+            font-size: 14px;
+        }
+        .collection-count {
+            color: #666;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        .document-list {
+            list-style: none;
+            padding: 0;
+        }
+        .document-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .document-item:hover {
+            background-color: #f5f5f5;
+        }
+        .document-id {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #4285F4;
+        }
+        .document-fields {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .field-count {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #4285F4;
+            color: #4285F4;
+            font-weight: bold;
+        }
+        .tab:hover:not(.active) {
+            border-bottom-color: #ddd;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .json-viewer {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Admin Panel</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="/admin/dashboard">Dashboard</a></li>
+            <li><a href="/admin/user">User Management</a></li>
+            <li class="active"><a href="/admin/firestore">Firestore</a></li>
+            <li><a href="/">Home Page</a></li>
+            <li><a href="/swagger/">API Documentation</a></li>
+            <li><a href="/admin/logout">Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <h1>Firestore Collections</h1>
+        </div>
+
+        <div class="card" id="collections-card">
+            <div class="breadcrumb">
+                <div class="breadcrumb-item active">Collections</div>
+            </div>
+
+            <div id="collections-container" hx-get="/admin/api/collections" hx-trigger="load">
+                <div class="loading">Loading collections...</div>
+            </div>
+        </div>
+
+        <div class="card" id="documents-card" style="display: none;">
+            <div class="breadcrumb">
+                <div class="breadcrumb-item"><a href="#" onclick="showCollections()">Collections</a></div>
+                <div class="breadcrumb-item active" id="current-collection"></div>
+            </div>
+
+            <div id="documents-container">
+                <div class="loading">Loading documents...</div>
+            </div>
+        </div>
+
+        <div class="card" id="document-detail-card" style="display: none;">
+            <div class="breadcrumb">
+                <div class="breadcrumb-item"><a href="#" onclick="showCollections()">Collections</a></div>
+                <div class="breadcrumb-item"><a href="#" id="back-to-collection">Collection</a></div>
+                <div class="breadcrumb-item active" id="current-document"></div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('data')">Data</div>
+                <div class="tab" onclick="switchTab('json')">JSON</div>
+            </div>
+
+            <div class="tab-content active" id="data-tab">
+                <table id="document-fields">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Document fields will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tab-content" id="json-tab">
+                <div class="json-viewer" id="document-json">
+                    <!-- JSON representation will be populated here -->
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="button" onclick="editDocument()">Edit</button>
+                <button class="button logout-btn" onclick="deleteDocument()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store current state
+        let currentCollection = '';
+        let currentDocument = '';
+        let documentData = null;
+
+        // Handle collections data loading
+        document.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'collections-container') {
+                try {
+                    const data = JSON.parse(event.detail.xhr.responseText);
+                    renderCollections(data);
+                } catch (error) {
+                    console.error('Error parsing collections data:', error);
+                    document.getElementById('collections-container').innerHTML = 
+                        '<div class="empty-message">Error loading collections. Please try again.</div>';
+                }
+            }
+        });
+
+        // Render collections list
+        function renderCollections(data) {
+            const container = document.getElementById('collections-container');
+            const collections = data.data;
+
+            if (!collections || collections.length === 0) {
+                container.innerHTML = '<div class="empty-message">No collections found</div>';
+                return;
+            }
+
+            let html = '<ul class="collection-list">';
+
+            collections.forEach(collection => {
+                html += `<li class="collection-item" onclick="loadDocuments('${collection.id}')">`;
+                html += '<div class="collection-icon">📁</div>';
+                html += '<div class="collection-info">';
+                html += `<div class="collection-name">${collection.id}</div>`;
+                html += `<div class="collection-path">${collection.path}</div>`;
+                html += '</div>';
+                html += `<div class="collection-count">${collection.documentCount} documents</div>`;
+                html += '</li>';
+            });
+
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        // Load documents for a collection
+        function loadDocuments(collectionId) {
+            currentCollection = collectionId;
+            document.getElementById('current-collection').textContent = collectionId;
+            document.getElementById('collections-card').style.display = 'none';
+            document.getElementById('documents-card').style.display = 'block';
+            document.getElementById('document-detail-card').style.display = 'none';
+
+            const container = document.getElementById('documents-container');
+            container.innerHTML = '<div class="loading">Loading documents...</div>';
+
+            fetch(`/admin/api/collections/${collectionId}/documents`, {
+                headers: {
+                    'Authorization': 'Bearer admin'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                renderDocuments(data);
+            })
+            .catch(error => {
+                console.error('Error loading documents:', error);
+                container.innerHTML = '<div class="empty-message">Error loading documents. Please try again.</div>';
+            });
+        }
+
+        // Render documents list
+        function renderDocuments(data) {
+            const container = document.getElementById('documents-container');
+            const documents = data.data;
+
+            if (!documents || documents.length === 0) {
+                container.innerHTML = '<div class="empty-message">No documents found in this collection</div>';
+                return;
+            }
+
+            let html = '<ul class="document-list">';
+
+            documents.forEach(doc => {
+                const fieldCount = Object.keys(doc).length - 1; // Subtract 1 for the ID field
+                html += `<li class="document-item" onclick="loadDocument('${currentCollection}', '${doc.id}')">`;
+                html += `<div class="document-id">${doc.id}</div>`;
+                html += `<div class="document-fields"><span class="field-count">${fieldCount} fields</span></div>`;
+                html += '</li>';
+            });
+
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        // Load a specific document
+        function loadDocument(collectionId, documentId) {
+            currentCollection = collectionId;
+            currentDocument = documentId;
+
+            document.getElementById('current-document').textContent = documentId;
+            document.getElementById('back-to-collection').textContent = collectionId;
+            document.getElementById('back-to-collection').onclick = function() { loadDocuments(collectionId); };
+
+            document.getElementById('collections-card').style.display = 'none';
+            document.getElementById('documents-card').style.display = 'none';
+            document.getElementById('document-detail-card').style.display = 'block';
+
+            fetch(`/admin/api/collections/${collectionId}/documents/${documentId}`, {
+                headers: {
+                    'Authorization': 'Bearer admin'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                documentData = data.data;
+                renderDocumentDetail(data.data);
+            })
+            .catch(error => {
+                console.error('Error loading document:', error);
+                document.getElementById('document-fields').innerHTML = 
+                    '<div class="empty-message">Error loading document. Please try again.</div>';
+            });
+        }
+
+        // Render document detail
+        function renderDocumentDetail(data) {
+            // Render table view
+            const tableBody = document.querySelector('#document-fields tbody');
+            tableBody.innerHTML = '';
+
+            Object.entries(data).forEach(([key, value]) => {
+                const row = document.createElement('tr');
+
+                const fieldCell = document.createElement('td');
+                fieldCell.textContent = key;
+                row.appendChild(fieldCell);
+
+                const typeCell = document.createElement('td');
+                typeCell.textContent = getType(value);
+                row.appendChild(typeCell);
+
+                const valueCell = document.createElement('td');
+                valueCell.textContent = formatValue(value);
+                row.appendChild(valueCell);
+
+                tableBody.appendChild(row);
+            });
+
+            // Render JSON view
+            document.getElementById('document-json').textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Helper function to get type of a value
+        function getType(value) {
+            if (value === null) return 'null';
+            if (Array.isArray(value)) return 'array';
+            if (value instanceof Date) return 'date';
+            if (typeof value === 'object' && value.seconds !== undefined && value.nanoseconds !== undefined) {
+                return 'timestamp';
+            }
+            return typeof value;
+        }
+
+        // Helper function to format value for display
+        function formatValue(value) {
+            if (value === null) return 'null';
+            if (Array.isArray(value)) return `Array(${value.length})`;
+            if (typeof value === 'object') {
+                if (value.seconds !== undefined && value.nanoseconds !== undefined) {
+                    // Format timestamp
+                    const date = new Date(value.seconds * 1000);
+                    return date.toLocaleString();
+                }
+                return `Object(${Object.keys(value).length} properties)`;
+            }
+            return String(value);
+        }
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Show collections (go back to main view)
+        function showCollections() {
+            document.getElementById('collections-card').style.display = 'block';
+            document.getElementById('documents-card').style.display = 'none';
+            document.getElementById('document-detail-card').style.display = 'none';
+
+            // Refresh collections
+            htmx.trigger('#collections-container', 'load');
+        }
+
+        // Edit document (placeholder)
+        function editDocument() {
+            alert('Edit functionality not implemented yet');
+        }
+
+        // Delete document
+        function deleteDocument() {
+            if (!confirm(`Are you sure you want to delete document "${currentDocument}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            fetch(`/admin/api/collections/${currentCollection}/documents/${currentDocument}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer admin'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Document deleted successfully');
+                    loadDocuments(currentCollection);
+                } else {
+                    alert(`Error: ${data.error || 'Failed to delete document'}`);
+                }
+            })
+            .catch(error => {
+                alert(`Error: ${error.message}`);
+            });
+        }
+    </script>
+</body>
+</html>

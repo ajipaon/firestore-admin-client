@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- HTMX for handling requests without full page reloads -->
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar-header {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid #34495e;
+        }
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .sidebar-menu li {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .sidebar-menu li:hover {
+            background-color: #34495e;
+        }
+        .sidebar-menu li.active {
+            background-color: #3498db;
+        }
+        .sidebar-menu a {
+            color: white;
+            text-decoration: none;
+            display: block;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+        }
+        h1 {
+            color: #4285F4;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 30px;
+        }
+        .stat-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4285F4;
+            margin: 10px 0;
+        }
+        .stat-label {
+            font-size: 18px;
+            color: #666;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-right: 10px;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3367d6;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            margin: 0 5px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .pagination button:hover {
+            background-color: #f5f5f5;
+        }
+        .pagination button.active {
+            background-color: #4285F4;
+            color: white;
+            border-color: #4285F4;
+        }
+        .pagination button:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        .action-btn {
+            padding: 5px 8px;
+            margin: 2px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: white;
+        }
+        .reset-btn {
+            background-color: #4285F4;
+        }
+        .reset-btn:hover {
+            background-color: #3367d6;
+        }
+        .enable-btn {
+            background-color: #34A853;
+        }
+        .enable-btn:hover {
+            background-color: #2E8B57;
+        }
+        .disable-btn {
+            background-color: #FBBC05;
+        }
+        .disable-btn:hover {
+            background-color: #F9A825;
+        }
+        .delete-btn {
+            background-color: #EA4335;
+        }
+        .delete-btn:hover {
+            background-color: #D32F2F;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-title {
+            margin: 0;
+        }
+        .close-modal {
+            cursor: pointer;
+            font-size: 24px;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-footer {
+            text-align: right;
+        }
+        .password-display {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Admin Panel</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active"><a href="/admin/dashboard">Dashboard</a></li>
+            <li><a href="/admin/user">User Management</a></li>
+            <li><a href="/admin/firestore">Firestore</a></li>
+            <li><a href="/">Home Page</a></li>
+            <li><a href="/swagger/">API Documentation</a></li>
+            <li><a href="/admin/logout">Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+        </div>
+
+        <div class="card">
+            <h2>Firebase Authentication Statistics</h2>
+            <div class="stat-card" hx-get="/admin/api/user-count" hx-trigger="load">
+                <div class="stat-label">Total Authenticated Users</div>
+                <div class="stat-number" id="user-count">Loading...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Quick Links</h2>
+            <div>
+                <a href="/" class="button">Home Page</a>
+                <a href="/swagger/" class="button">API Documentation</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Refresh user count every 30 seconds
+        setInterval(function() {
+            htmx.trigger('.stat-card', 'load');
+        }, 30000);
+    </script>
+</body>
+</html>

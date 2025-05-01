@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Forwarder</title>
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #4285F4;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .button {
+            display: inline-block;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-right: 10px;
+            text-decoration: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #3367d6;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .feature {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Firestore Forwarder</h1>
+
+    <div class="card">
+        <h2>About This Application</h2>
+        <p>
+            Firestore Forwarder is a service that provides a RESTful API for interacting with Firebase Firestore.
+            It allows you to perform CRUD operations on Firestore documents through simple HTTP requests.
+        </p>
+        <div>
+            <a href="/login" class="button">Login</a>
+            <a href="/admin/login" class="button">Admin Login</a>
+            <a href="/swagger/" class="button">API Documentation</a>
+            <a href="/health" class="button">Health Check</a>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>Authentication</h3>
+            <p>Secure access to your Firestore data with Firebase Authentication.</p>
+        </div>
+        <div class="feature">
+            <h3>RESTful API</h3>
+            <p>Simple and intuitive API for working with Firestore documents.</p>
+        </div>
+        <div class="feature">
+            <h3>Swagger Documentation</h3>
+            <p>Interactive API documentation to help you get started quickly.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Firestore Forwarder &copy; 2023</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,352 @@
+basePath: /
+definitions:
+  controller.GenericResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  controller.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  controller.RegisterRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  lib.GenericResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  lib.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for interacting with Firebase Firestore
+  title: Firebase Firestore Forwarder API
+  version: "1.0"
+paths:
+  /api/collections/{collection}/documents:
+    get:
+      description: Retrieve documents from a Firestore collection with optional filtering
+      parameters:
+      - description: Collection name
+        in: path
+        name: collection
+        required: true
+        type: string
+      - default: 50
+        description: Maximum number of documents to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+      security:
+      - BearerAuth: []
+      summary: Query documents
+      tags:
+      - documents
+    post:
+      consumes:
+      - application/json
+      description: Create a new document in a Firestore collection
+      parameters:
+      - description: Collection name
+        in: path
+        name: collection
+        required: true
+        type: string
+      - description: Document data
+        in: body
+        name: document
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a document
+      tags:
+      - documents
+  /api/collections/{collection}/documents/{id}:
+    delete:
+      description: Delete a document from a Firestore collection
+      parameters:
+      - description: Collection name
+        in: path
+        name: collection
+        required: true
+        type: string
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a document
+      tags:
+      - documents
+    get:
+      description: Retrieve a specific document from a Firestore collection
+      parameters:
+      - description: Collection name
+        in: path
+        name: collection
+        required: true
+        type: string
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "404":
+          description: Document not found
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a document
+      tags:
+      - documents
+    put:
+      consumes:
+      - application/json
+      description: Update an existing document in a Firestore collection
+      parameters:
+      - description: Collection name
+        in: path
+        name: collection
+        required: true
+        type: string
+      - description: Document ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Document data
+        in: body
+        name: document
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "500":
+          description: Server error
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a document
+      tags:
+      - documents
+  /auth/login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Login with email and password using HTML form
+      parameters:
+      - description: Email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML response with token
+          schema:
+            type: string
+        "400":
+          description: HTML error response
+          schema:
+            type: string
+        "401":
+          description: HTML error response
+          schema:
+            type: string
+      summary: Login (Form)
+      tags:
+      - auth
+  /auth/login/json:
+    post:
+      consumes:
+      - application/json
+      description: Login with email and password (JSON API)
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/lib.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/lib.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/lib.GenericResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/lib.GenericResponse'
+      summary: Login (JSON API)
+      tags:
+      - auth
+  /auth/register/json:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password (JSON API)
+      parameters:
+      - description: Registration credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/controller.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.GenericResponse'
+      summary: Register new user (JSON API)
+      tags:
+      - auth
+  /login:
+    get:
+      description: Serves the HTML login page
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML login page
+          schema:
+            type: string
+      summary: Login Page
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
